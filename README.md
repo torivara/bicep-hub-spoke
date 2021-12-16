@@ -4,7 +4,8 @@ This started as a demonstration made for an internal presentation of Bicep where
 
 ## Disclaimer
 
->Use this as an inspiration for your own deployment, or copy the code as a starter environment. It doesn't matter, really, but please make sure you vet the code before using it for something important. This is a private project of mine, and in no way endorsed by my employer. >It will not be maintained indefinitely, and it will contain bugs (as all code do).
+>Use this as an inspiration for your own deployment, or copy the code as a starter environment. It doesn't matter, really, but please make sure you vet the code before using it for something important. This is a private project of mine, and in no way endorsed by my employer.
+>It will not be maintained indefinitely, and it will contain bugs (as all code do).
 
 ## Structure
 
