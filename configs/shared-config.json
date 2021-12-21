@@ -25,7 +25,7 @@
   },
   "platform": {
     "subscriptionId": "",
-    "addressPrefixes": [
+    "vnetAddressPrefixes": [
       "10.0.0.0/16"
     ],
     "subnets": [],
@@ -33,22 +33,25 @@
     "firewallEnabled": true,
     "vpnGatewayEnabled": true,
     "bastionEnabled": true,
-    "appGatewayEnabled": true
+    "appGatewayEnabled": true,
+    "prefix": "hub"
   },
   "sub-crp1": {
     "subscriptionId": "",
-    "addressPrefixes": [
+    "vnetAddressPrefixes": [
       "10.1.0.0/16"
     ],
     "subnets": [],
-    "customRoutes": []
+    "customRoutes": [],
+    "prefix": "crp1"
   },
   "sub-onl1": {
     "subscriptionId": "",
-    "addressPrefixes": [
+    "vnetAddressPrefixes": [
       "10.2.0.0/16"
     ],
     "subnets": [],
-    "customRoutes": []
+    "customRoutes": [],
+    "prefix": "onl1"
   }
 }

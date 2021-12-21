@@ -1,75 +1,68 @@
 targetScope = 'managementGroup'
 
-param rootGroupId string = '0c178fd5-1459-41d5-8731-3908efd207ea'
-param topLevelGroupName string = 'TreyResearch'
-param platformGroupName string = 'Platform'
-param landingZonesGroupName string = 'LandingZones'
-param onlineGroupName string = 'Online'
-param corpGroupName string = 'Corp'
-
 param hubSubscriptionId string
 param spoke1SubscriptionId string
 param spoke2SubscriptionId string
 
+var sharedConfig = json(loadTextContent('../../../../configs/shared-config.json'))
+
 //deploy mgmt group treyresearch
-module mgTopLevel 'modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
+module mgTopLevel '../../../modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
   name: 'mg-toplevel-deploy'
   params: {
-    name: topLevelGroupName
-    parentId: rootGroupId
+    name: sharedConfig['mg-root'].name
+    parentId: sharedConfig['mg-root'].parentId
   }
 }
 
 //deploy mgmt group platform
-module mgPlatform 'modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
+module mgPlatform '../../../modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
   name: 'mg-platform-deploy'
   params: {
-    name: platformGroupName
+    name: sharedConfig['mg-platform'].name
     parentId: last(split(mgTopLevel.outputs.managementGroupId, '/'))
   }
 }
 
 //deploy mgmt group landingzones
-module mgLandingZones 'modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
+module mgLandingZones '../../../modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
   name: 'mg-landingzones-deploy'
   params: {
-    name: landingZonesGroupName
+    name: sharedConfig['mg-landingzones'].name
     parentId: last(split(mgTopLevel.outputs.managementGroupId, '/'))
   }
 }
 
 //deploy mgmt group online
-module mgOnline 'modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
+module mgOnline '../../../modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
   name: 'mg-online-deploy'
   params: {
-    name: onlineGroupName
+    name: sharedConfig['mg-online'].name
     parentId: last(split(mgLandingZones.outputs.managementGroupId, '/'))
   }
 }
 
 //deploy mgmt group corp
-module mgCorp 'modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
+module mgCorp '../../../modules/arm/Microsoft.Management/managementGroups/deploy.bicep' = {
   name: 'mg-corp-deploy'
   params: {
-    name: corpGroupName
+    name: sharedConfig['mg-corp'].name
     parentId: last(split(mgLandingZones.outputs.managementGroupId, '/'))
   }
 }
 
 //deploy hub in platform mgmt group - platform subscription
-module hub 'solutions/hub/deploy.bicep' = {
+module hub '../../../solutions/hub/deploy.bicep' = {
   name: 'hub-deploy'
-  scope: subscription(hubSubscriptionId)
+  scope: subscription(sharedConfig.platform.subscriptionId)
   params: {
-    prefix: 'hub'
-    vnetAddressPrefixes: [
-      '10.0.0.0/16'
-    ]
+    prefix: sharedConfig.platform.prefix
+    vnetAddressPrefixes: sharedConfig.platform.vnetAddressPrefixes
   }
 }
 
 //deploy spoke 1 in landingzones -> online - spoke 1 subscription
-module spoke1 'solutions/spoke/deploy.bicep' = {
+module spoke1 '../../../solutions/spoke/deploy.bicep' = {
   name: 'spoke1-deploy'
   scope: subscription(spoke1SubscriptionId)
   params: {
@@ -96,7 +89,7 @@ module spoke1 'solutions/spoke/deploy.bicep' = {
   ]
 }
 
-module peeringHubToSpoke1 'modules/arm/peering/deploy.bicep' = {
+module peeringHubToSpoke1 '../../../modules/arm/peering/deploy.bicep' = {
   name: 'peering-deploy-hubspk1'
   scope: resourceGroup(hubSubscriptionId,'hub-network-rg')
   params: {
@@ -110,7 +103,7 @@ module peeringHubToSpoke1 'modules/arm/peering/deploy.bicep' = {
   ]
 }
 
-module peeringSpokeTo1Hub 'modules/arm/peering/deploy.bicep' = {
+module peeringSpokeTo1Hub '../../../modules/arm/peering/deploy.bicep' = {
   name: 'peering-deploy-spk1hub'
   scope: resourceGroup(spoke1SubscriptionId,'spk1-network-rg')
   params: {
@@ -124,7 +117,7 @@ module peeringSpokeTo1Hub 'modules/arm/peering/deploy.bicep' = {
   ]
 }
 
-module spoke2 'solutions/spoke/deploy.bicep' = {
+module spoke2 '../../../solutions/spoke/deploy.bicep' = {
   name: 'spoke2-deploy'
   scope: subscription(spoke2SubscriptionId)
   params: {
@@ -151,7 +144,7 @@ module spoke2 'solutions/spoke/deploy.bicep' = {
   ]
 }
 
-module peeringHubToSpoke2 'modules/arm/peering/deploy.bicep' = {
+module peeringHubToSpoke2 '../../../modules/arm/peering/deploy.bicep' = {
   name: 'peering-deploy-hubspk2'
   scope: resourceGroup(hubSubscriptionId,'hub-network-rg')
   params: {
@@ -165,7 +158,7 @@ module peeringHubToSpoke2 'modules/arm/peering/deploy.bicep' = {
   ]
 }
 
-module peeringSpoke2ToHub 'modules/arm/peering/deploy.bicep' = {
+module peeringSpoke2ToHub '../../../modules/arm/peering/deploy.bicep' = {
   name: 'peering-deploy-spk2hub'
   scope: resourceGroup(spoke2SubscriptionId,'spk2-network-rg')
   params: {
