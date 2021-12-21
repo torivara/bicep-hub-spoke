@@ -62,19 +62,17 @@ module hub '../../../solutions/hub/deploy.bicep' = {
 }
 
 //deploy spoke 1 in landingzones -> online - spoke 1 subscription
-module spoke1 '../../../solutions/spoke/deploy.bicep' = {
-  name: 'spoke1-deploy'
+module spokes '../../../solutions/spoke/deploy.bicep' = [for (item,index) in sharedConfig['spokes']: {
+  name: 'spoke-${item.prefix}-deploy'
   scope: subscription(spoke1SubscriptionId)
   params: {
-    prefix: 'spk1'
-    vnetAddressPrefixes: [
-      '10.1.0.0/16'
-    ]
-    frontendSubnetPrefix: '10.1.0.0/24'
-    backendSubnetPrefix: '10.1.1.0/24'
-    aksSubnetPrefix: '10.1.2.0/24'
-    hubNvaNextHop: hub.outputs.hubAzureFirewallIp
-    aksConfiguration: []
+    prefix: item.prefix
+    vnetAddressPrefixes: item.vnetAddressPrefixes
+    frontendSubnetPrefix: '${split(item.vnetAddressPrefixes[0],'.')[0]}.${split(item.vnetAddressPrefixes[0],'.')[1]}.0.0/24'
+    backendSubnetPrefix: '${split(item.vnetAddressPrefixes[0],'.')[0]}.${split(item.vnetAddressPrefixes[0],'.')[1]}.1.0/24'
+    aksSubnetPrefix: '${split(item.vnetAddressPrefixes[0],'.')[0]}.${split(item.vnetAddressPrefixes[0],'.')[1]}.2.0/24'
+    hubNvaNextHop: any(sharedConfig['platform'].firewallEnabled ? hub.outputs.hubAzureFirewallIp : null)
+    aksConfiguration: item.aksConfig != [] ? item.aksConfig : null
     apps: [
       {
         name: 'app1'
@@ -87,87 +85,32 @@ module spoke1 '../../../solutions/spoke/deploy.bicep' = {
   dependsOn: [
     hub
   ]
-}
+}]
 
-module peeringHubToSpoke1 '../../../modules/arm/peering/deploy.bicep' = {
-  name: 'peering-deploy-hubspk1'
-  scope: resourceGroup(hubSubscriptionId,'hub-network-rg')
+module hubpeerings '../../../modules/arm/peering/deploy.bicep' = [for (item, index) in sharedConfig['spokes']: {
+  name: 'peering-deploy-hub-to-${item.prefix}'
+  scope: resourceGroup(sharedConfig.platform.subscriptionId,'${sharedConfig.platform.prefix}-network-rg')
   params: {
-    remoteVnetName: last(split(spoke1.outputs.coreVnetId,'/'))
+    remoteVnetName: last(split(spokes[index].outputs.coreVnetId,'/'))
     localVnetName: last(split(hub.outputs.coreVnetId,'/'))
-    remoteVnetID: spoke1.outputs.coreVnetId
+    remoteVnetID: spokes[index].outputs.coreVnetId
   }
   dependsOn: [
     hub
-    spoke1
+    spokes[index]
   ]
-}
+}]
 
-module peeringSpokeTo1Hub '../../../modules/arm/peering/deploy.bicep' = {
-  name: 'peering-deploy-spk1hub'
+module spokepeerings '../../../modules/arm/peering/deploy.bicep' = [for (item, index) in sharedConfig['spokes']: {
+  name: 'peering-deploy-${item.prefix}-to-hub'
   scope: resourceGroup(spoke1SubscriptionId,'spk1-network-rg')
   params: {
     remoteVnetName: last(split(hub.outputs.coreVnetId,'/'))
-    localVnetName: last(split(spoke1.outputs.coreVnetId,'/'))
+    localVnetName: last(split(spokes[index].outputs.coreVnetId,'/'))
     remoteVnetID: hub.outputs.coreVnetId
   }
   dependsOn: [
-    spoke1
+    spokes[index]
     hub
   ]
-}
-
-module spoke2 '../../../solutions/spoke/deploy.bicep' = {
-  name: 'spoke2-deploy'
-  scope: subscription(spoke2SubscriptionId)
-  params: {
-    prefix: 'spk2'
-    vnetAddressPrefixes: [
-      '10.2.0.0/16'
-    ]
-    frontendSubnetPrefix: '10.2.0.0/24'
-    backendSubnetPrefix: '10.2.1.0/24'
-    aksSubnetPrefix: '10.2.2.0/24'
-    hubNvaNextHop: hub.outputs.hubAzureFirewallIp
-    aksConfiguration: [
-      {
-        baseName: 'spk2-cluster01'
-        aadGroupIds: [
-          'fcf6fa6a-f05a-45dd-a5a2-f22bbc9db105'
-        ]
-        rgName: 'spk2-aks-rg'
-      }
-    ]
-  }
-  dependsOn: [
-    hub
-  ]
-}
-
-module peeringHubToSpoke2 '../../../modules/arm/peering/deploy.bicep' = {
-  name: 'peering-deploy-hubspk2'
-  scope: resourceGroup(hubSubscriptionId,'hub-network-rg')
-  params: {
-    remoteVnetName: last(split(spoke2.outputs.coreVnetId,'/'))
-    localVnetName: last(split(hub.outputs.coreVnetId,'/'))
-    remoteVnetID: spoke2.outputs.coreVnetId
-  }
-  dependsOn: [
-    hub
-    spoke2
-  ]
-}
-
-module peeringSpoke2ToHub '../../../modules/arm/peering/deploy.bicep' = {
-  name: 'peering-deploy-spk2hub'
-  scope: resourceGroup(spoke2SubscriptionId,'spk2-network-rg')
-  params: {
-    remoteVnetName: last(split(hub.outputs.coreVnetId,'/'))
-    localVnetName: last(split(spoke2.outputs.coreVnetId,'/'))
-    remoteVnetID: hub.outputs.coreVnetId
-  }
-  dependsOn: [
-    spoke2
-    hub
-  ]
-}
+}]

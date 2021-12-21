@@ -36,22 +36,36 @@
     "appGatewayEnabled": true,
     "prefix": "hub"
   },
-  "sub-crp1": {
-    "subscriptionId": "",
-    "vnetAddressPrefixes": [
-      "10.1.0.0/16"
-    ],
-    "subnets": [],
-    "customRoutes": [],
-    "prefix": "crp1"
-  },
-  "sub-onl1": {
-    "subscriptionId": "",
-    "vnetAddressPrefixes": [
-      "10.2.0.0/16"
-    ],
-    "subnets": [],
-    "customRoutes": [],
-    "prefix": "onl1"
-  }
+  "spokes": [
+    {
+      "type": "Corp",
+      "subscriptionId": "",
+      "vnetAddressPrefixes": [
+        "10.1.0.0/16"
+      ],
+      "subnets": [],
+      "customRoutes": [],
+      "prefix": "crp1",
+      "aksConfig": []
+    },
+    {
+      "type": "Online",
+      "subscriptionId": "",
+      "vnetAddressPrefixes": [
+        "10.2.0.0/16"
+      ],
+      "subnets": [],
+      "customRoutes": [],
+      "prefix": "onl1",
+      "aksConfig": [
+        {
+          "baseName": "onl1-cluster01",
+          "aadGroupIds": [
+            "fcf6fa6a-f05a-45dd-a5a2-f22bbc9db105"
+          ],
+          "rgName": "onl1-aks-rg"
+        }
+      ]
+    }
+  ]
 }
