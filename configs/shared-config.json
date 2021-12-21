@@ -1,0 +1,54 @@
+{
+  "mg-root": {
+    "parentId": "0c178fd5-1459-41d5-8731-3908efd207ea",
+    "name": "TreyResearch"
+  },
+  "mg-platform": {
+    "parentName": "TreyResearch",
+    "name": "Platform",
+    "subscriptionIds": []
+  },
+  "mg-landingzones": {
+    "parentName": "TreyResearch",
+    "name": "LandingZones",
+    "subscriptionIds": []
+  },
+  "mg-online": {
+    "parentName": "LandingZones",
+    "name": "Online",
+    "subscriptionIds": []
+  },
+  "mg-corp": {
+    "parentName": "LandingZones",
+    "name": "Corp",
+    "subscriptionIds": []
+  },
+  "platform": {
+    "subscriptionId": "",
+    "addressPrefixes": [
+      "10.0.0.0/16"
+    ],
+    "subnets": [],
+    "customRoutes": [],
+    "firewallEnabled": true,
+    "vpnGatewayEnabled": true,
+    "bastionEnabled": true,
+    "appGatewayEnabled": true
+  },
+  "sub-crp1": {
+    "subscriptionId": "",
+    "addressPrefixes": [
+      "10.1.0.0/16"
+    ],
+    "subnets": [],
+    "customRoutes": []
+  },
+  "sub-onl1": {
+    "subscriptionId": "",
+    "addressPrefixes": [
+      "10.2.0.0/16"
+    ],
+    "subnets": [],
+    "customRoutes": []
+  }
+}
